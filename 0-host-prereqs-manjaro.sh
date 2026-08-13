@@ -53,15 +53,6 @@ if systemctl is-active --quiet multipathd.service 2>/dev/null; then
   warn "multipathd is active. Exclude Longhorn devices from multipath or disable multipathd on dedicated cluster nodes."
 fi
 
-section "Disable swap"
-swapoff -a
-if grep -Eq '^[^#].*[[:space:]]swap[[:space:]]' /etc/fstab; then
-  cp -a /etc/fstab "/etc/fstab.microk8s-platform.$(date +%Y%m%d%H%M%S).bak"
-  sed -i -E '/^[^#].*[[:space:]]swap[[:space:]]/ s/^/# disabled by microk8s-platform: /' /etc/fstab
-fi
-
-section "Prepare data directories"
-install -d -m 0750 "${LONGHORN_DATA_PATH:-/var/lib/longhorn}"
 
 section "Check acceleration"
 if [[ -c /dev/kvm ]]; then

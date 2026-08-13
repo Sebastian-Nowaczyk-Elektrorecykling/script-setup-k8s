@@ -10,13 +10,6 @@ LOCK_DIR="$STATE_DIR/locks"
 mkdir -p "$STATE_DIR" "$RENDER_DIR" "$LOCK_DIR"
 chmod 700 "$STATE_DIR" 2>/dev/null || true
 
-# shellcheck disable=SC1091
-[[ -f "$ROOT_DIR/versions.env" ]] && source "$ROOT_DIR/versions.env"
-# shellcheck disable=SC1091
-[[ -f "$ROOT_DIR/.env" ]] && source "$ROOT_DIR/.env"
-# shellcheck disable=SC1090
-[[ -f "$SECRETS_FILE" ]] && source "$SECRETS_FILE"
-
 export PATH="/snap/bin:$PATH"
 export DOLLAR='$'
 
@@ -74,33 +67,6 @@ random_hex() {
   fi
 }
 
-ensure_secret_var() {
-  local name="$1" bytes="${2:-24}" value="${!name:-}"
-  [[ -n "$value" ]] && return 0
-  value="$(random_hex "$bytes")"
-  touch "$SECRETS_FILE"
-  chmod 600 "$SECRETS_FILE"
-  printf '%s=%q\n' "$name" "$value" >> "$SECRETS_FILE"
-  export "$name=$value"
-}
-
-
-persist_secret_var() {
-  local name="$1" value="$2"
-  if grep -qE "^${name}=" "$SECRETS_FILE" 2>/dev/null; then
-    return 0
-  fi
-  touch "$SECRETS_FILE"
-  chmod 600 "$SECRETS_FILE"
-  printf '%s=%q\n' "$name" "$value" >> "$SECRETS_FILE"
-  export "$name=$value"
-}
-
-reload_secrets() {
-  # shellcheck disable=SC1090
-  [[ -f "$SECRETS_FILE" ]] && source "$SECRETS_FILE"
-}
-
 namespace() {
   local name="$1"
   k create namespace "$name" --dry-run=client -o yaml | k apply -f - >/dev/null
@@ -116,18 +82,6 @@ secret_literals() {
   done
   namespace "$ns"
   k -n "$ns" create secret generic "$name" "${args[@]}" --dry-run=client -o yaml | k apply -f - >/dev/null
-}
-
-secret_file() {
-  local ns="$1" name="$2" key="$3" file="$4"
-  namespace "$ns"
-  k -n "$ns" create secret generic "$name" "--from-file=${key}=${file}" --dry-run=client -o yaml | k apply -f - >/dev/null
-}
-
-configmap_file() {
-  local ns="$1" name="$2" key="$3" file="$4"
-  namespace "$ns"
-  k -n "$ns" create configmap "$name" "--from-file=${key}=${file}" --dry-run=client -o yaml | k apply -f - >/dev/null
 }
 
 render() {
@@ -232,27 +186,6 @@ sanitize_dns_label() {
   tr '[:upper:]_' '[:lower:]-' <<<"$1" | sed -E 's/[^a-z0-9-]+/-/g; s/^-+//; s/-+$//; s/-+/-/g' | cut -c1-63
 }
 
-ensure_admin_secrets() {
-  ensure_secret_var KEYCLOAK_ADMIN_PASSWORD 24
-  ensure_secret_var PLATFORM_ADMIN_PASSWORD 24
-  ensure_secret_var ENVOY_OIDC_CLIENT_SECRET 24
-  ensure_secret_var FORGEJO_OIDC_CLIENT_SECRET 24
-  ensure_secret_var ARGOCD_OIDC_CLIENT_SECRET 24
-  ensure_secret_var GRAFANA_OIDC_CLIENT_SECRET 24
-  ensure_secret_var BACKSTAGE_OIDC_CLIENT_SECRET 24
-  ensure_secret_var KUBERNETES_OIDC_CLIENT_SECRET 24
-  ensure_secret_var PROJECT_CONTROLLER_CLIENT_SECRET 24
-  ensure_secret_var FORGEJO_ADMIN_PASSWORD 24
-  ensure_secret_var FORGEJO_INTERNAL_TOKEN 32
-  ensure_secret_var FORGEJO_SECRET_KEY 32
-  ensure_secret_var FORGEJO_LFS_JWT_SECRET 32
-  ensure_secret_var FORGEJO_RUNNER_SHARED_SECRET 20
-  ensure_secret_var BACKSTAGE_BACKEND_SECRET 32
-  ensure_secret_var BACKSTAGE_SESSION_SECRET 32
-  ensure_secret_var PROJECT_FACTORY_API_TOKEN 32
-  ensure_secret_var FORGEJO_REGISTRY_PASSWORD 24
-  reload_secrets
-}
 
 assert_default_storage() {
   local defaults

@@ -2,7 +2,6 @@
 set -Eeuo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/common.sh"
-require_config
 require_microk8s
 
 section "Enable core MicroK8s add-ons"
@@ -28,14 +27,8 @@ if ! k get crd clusters.postgresql.cnpg.io >/dev/null 2>&1; then
 fi
 wait_crd clusters.postgresql.cnpg.io 900
 
-nodes="$(ready_node_count)"
-if (( nodes < 3 )); then
-  warn "Only $nodes Ready node(s) detected. HA control plane, three-way Longhorn replication, and three-instance PostgreSQL clusters require at least three failure domains."
-fi
-
 # hostpath can remain for throwaway data, but it must not remain the default once Longhorn is installed.
 if k get storageclass microk8s-hostpath >/dev/null 2>&1; then
   k annotate storageclass microk8s-hostpath storageclass.kubernetes.io/is-default-class=false --overwrite || true
   k annotate storageclass microk8s-hostpath storageclass.beta.kubernetes.io/is-default-class=false --overwrite || true
 fi
-write_checkpoint addons

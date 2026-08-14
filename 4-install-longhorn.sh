@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/common.sh"
+require_microk8s
+
+microk8s helm repo add longhorn https://charts.longhorn.io
+microk8s helm repo update
+microk8s helm install longhorn longhorn/longhorn --namespace longhorn-system --create-namespace
+
+section "Install storage classes"
+apply_template storage/classes.yaml.tmpl
+if k get storageclass microk8s-hostpath >/dev/null 2>&1; then
+  k annotate storageclass microk8s-hostpath storageclass.kubernetes.io/is-default-class=false --overwrite || true
+  k annotate storageclass microk8s-hostpath storageclass.beta.kubernetes.io/is-default-class=false --overwrite || true
+fi
+k annotate storageclass longhorn storageclass.kubernetes.io/is-default-class=true --overwrite
+k annotate storageclass longhorn storageclass.beta.kubernetes.io/is-default-class=true --overwrite
+assert_default_storage

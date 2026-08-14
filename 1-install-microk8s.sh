@@ -10,6 +10,8 @@ TARGET_USER="seba"
 TARGET_HOME="$(getent passwd "$TARGET_USER" | cut -d: -f6)"
 [[ -n "$TARGET_HOME" ]] || die "Could not determine home directory for $TARGET_USER"
 
+sudo ln -s /var/lib/snapd/snap /snap
+
 if snap list microk8s >/dev/null 2>&1; then
   sudo snap refresh microk8s
 else

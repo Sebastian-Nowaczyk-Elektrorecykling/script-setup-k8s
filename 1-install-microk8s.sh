@@ -42,5 +42,4 @@ case "$ROLE" in
     sudo microk8s kubectl taint node "$NODE_NAME" node-role.kubernetes.io/control-plane- || true
     ;;
 esac
-sudo "$SCRIPT_DIR/14-label-hardware.sh" || true
 log "MicroK8s is ready. Re-login before running non-sudo microk8s commands if group membership was new."

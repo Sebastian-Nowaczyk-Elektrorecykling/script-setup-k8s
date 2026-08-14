@@ -20,6 +20,8 @@ fi
 sudo usermod -a -G microk8s "$TARGET_USER"
 sudo install -d -m 0770 -o "$TARGET_USER" -g microk8s "$TARGET_HOME/.kube"
 
+sudo ln -s /var/lib/snapd/snap/bin/microk8s /bin
+
 sudo microk8s status --wait-ready --timeout 600
 sudo microk8s config > "$TARGET_HOME/.kube/config"
 sudo chown "$TARGET_USER:microk8s" "$TARGET_HOME/.kube/config"

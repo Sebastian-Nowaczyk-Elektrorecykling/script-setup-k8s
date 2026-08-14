@@ -9,7 +9,11 @@ if k get storageclass longhorn >/dev/null 2>&1; then
 else
   microk8s helm repo add longhorn https://charts.longhorn.io
   microk8s helm repo update
-  microk8s helm install longhorn longhorn/longhorn --namespace longhorn-system --create-namespace
+  microk8s helm install longhorn longhorn/longhorn \
+  --namespace longhorn-system \
+  --create-namespace \
+  --set defaultSettings.defaultReplicaCount=1 \
+  --set persistence.defaultClassReplicaCount=1
 fi
 
 if k get storageclass microk8s-hostpath >/dev/null 2>&1; then

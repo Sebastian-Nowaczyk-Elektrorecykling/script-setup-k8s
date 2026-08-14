@@ -42,4 +42,5 @@ case "$ROLE" in
     sudo microk8s kubectl taint node "$NODE_NAME" node-role.kubernetes.io/control-plane- || true
     ;;
 esac
+log "run: newgrp microk8s"
 log "MicroK8s is ready. Re-login before running non-sudo microk8s commands if group membership was new."

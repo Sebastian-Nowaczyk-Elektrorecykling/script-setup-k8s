@@ -5,7 +5,7 @@ source "$SCRIPT_DIR/lib/common.sh"
 require_microk8s
 
 section "Enable core MicroK8s add-ons"
-for addon in dns rbac helm3 metrics-server cert-manager; do
+for addon in dns rbac helm3 metrics-server cert-manager hostpath-storage; do
   microk8s enable "$addon"
 done
 

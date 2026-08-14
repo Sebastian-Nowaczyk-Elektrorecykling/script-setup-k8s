@@ -11,3 +11,5 @@ done
 
 section "Enable community add-on repository"
 microk8s enable community
+
+microk8s enable "argocd"

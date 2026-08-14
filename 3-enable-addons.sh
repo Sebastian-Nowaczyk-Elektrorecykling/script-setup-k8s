@@ -12,12 +12,6 @@ done
 section "Enable community add-on repository"
 microk8s enable community
 
-section "Configure MetalLB"
-if microk8s status --format yaml 2>/dev/null | grep -qE '^  metallb: enabled'; then
-  log "MetalLB already enabled; preserving its current address pool"
-else
-  microk8s enable "metallb:${METALLB_RANGE}"
-fi
 
 section "Enable CloudNativePG operator"
 if ! k get crd clusters.postgresql.cnpg.io >/dev/null 2>&1; then

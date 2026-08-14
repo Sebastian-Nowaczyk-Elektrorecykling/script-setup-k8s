@@ -17,3 +17,5 @@ fi
 k annotate storageclass longhorn storageclass.kubernetes.io/is-default-class=true --overwrite
 k annotate storageclass longhorn storageclass.beta.kubernetes.io/is-default-class=true --overwrite
 assert_default_storage
+
+k apply --server-side -f https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/release-1.30/releases/cnpg-1.30.0.yaml
